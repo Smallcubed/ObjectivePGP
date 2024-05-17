@@ -165,7 +165,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 + (nullable NSData *)decrypt:(NSData *)data 
-                    verified:(int * _Nullable)verified
+                    verified:(PGPErrorCode * _Nullable)verified
          usingDecryptionKeys:(NSArray<PGPKey *> *)decryptionKeys
             verificationKeys:(NSArray<PGPKey *> *)verificationKeys
             passphraseForKey:(nullable NSString * _Nullable(^__attribute__((noescape)))(PGPKey * _Nullable key))passphraseForKeyBlock
