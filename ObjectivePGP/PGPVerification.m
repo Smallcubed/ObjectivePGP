@@ -13,7 +13,7 @@
 
 @implementation PGPVerification
 -(NSString*)description{
-    return [[super description] stringByAppendingFormat:@"code: %d, KeyID: %@, error: %@",self.verificationCode,self.keyID.longIdentifier,self.verificationError];
+    return [[super description] stringByAppendingFormat:@"code: %ld, KeyID: %@, error: %@",self.verificationCode,self.keyID.longIdentifier,self.verificationError];
     
 }
 @end
