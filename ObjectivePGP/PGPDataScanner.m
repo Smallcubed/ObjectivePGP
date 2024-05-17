@@ -166,6 +166,18 @@
             *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Tail doesn't match armor header" }];
         }
     }
+    let trim = ^NSData*(NSData *data){ // trim excess linefeeds after the checksum
+        var loc = data.length;
+        while (loc>0){
+            let lastByte = [data subdataWithRange:NSMakeRange(loc-1,1)];
+            if (! ([lastByte isEqualToData:cr] || [lastByte isEqualToData:lf])){
+                break;
+            }
+            loc--;
+        }
+        return [data subdataWithRange:NSMakeRange(0,loc)];
+    };
+    armorBody = trim(armorBody);
     NSMutableData * checkSumDelimiter = [lineBreak mutableCopy];
     [checkSumDelimiter appendData: [NSData dataWithBytes:"=" length:1]];
     let delimChecksumLength = checkSumDelimiter.length+4;  //   <break>=<4char>

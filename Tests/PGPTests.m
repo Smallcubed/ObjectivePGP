@@ -866,7 +866,7 @@ VeRZK3B9rDy0pOJ+32l8lIvTs8JoDXtlWznNYBtgyTehjwKHlxEpPv4conHZ9a5k\n\
 u4s6IFLF3vbpdUbfmDe5LaXfJwbFZN5/NXuzApSvBFq610ra\n\
 =WK6L\n\
 -----END PGP MESSAGE-----\n\
-    " dataUsingEncoding:NSUTF8StringEncoding];
+" dataUsingEncoding:NSUTF8StringEncoding];
 
     let publicKey = [@"-----BEGIN PGP PUBLIC KEY BLOCK-----\n\
 \n\
@@ -892,11 +892,20 @@ Hy2rxOlSAfBZaJr9A7XSPlU=\n\
     BOOL success = [ObjectivePGP verify:signedMessage withSignature:nil usingKeys:keys passphraseForKey:nil error:nil];
     XCTAssertTrue(success);
 
-    int verificationStatus = 9;
-//    let decrypted = [ObjectivePGP decrypt:signedMessage verified:&verificationStatus certifyWithRootKey:NO usingKeys:keys passphraseForKey:nil decryptionError:nil verificationError:nil];
-//    XCTAssertNotNil(decrypted);
-//    XCTAssertEqual(verificationStatus, 0);
-//    XCTAssertEqualObjects(@"Hi Marcin, this a signed message", [[NSString alloc] initWithData:decrypted encoding:NSUTF8StringEncoding]);
+    PGPErrorCode verificationStatus = PGPErrorInvalidMessage;
+    
+    let decrypted = [ObjectivePGP decrypt:signedMessage
+                                 verified:&verificationStatus
+                       certifyWithRootKey:NO
+                      usingDecryptionKeys:keys
+                         verificationKeys:keys
+                         passphraseForKey:nil
+                          decryptionError:nil
+                        verificationError:nil];
+    
+    XCTAssertNotNil(decrypted);
+    XCTAssertEqual(verificationStatus, PGPErrorNone);
+    XCTAssertEqualObjects(@"Hi Marcin, this a signed message", [[NSString alloc] initWithData:decrypted encoding:NSUTF8StringEncoding]);
 }
 
 @end

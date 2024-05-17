@@ -130,9 +130,7 @@
     NSError * error = nil;
     let keys1 = [ObjectivePGP readKeysFromData:armoredData error:&error];
     
-    NSThread.currentThread.threadDictionary[@"USE_PGP_DATA_SCANNER"] = @YES;
     let keys2 = [ObjectivePGP readKeysFromData:armoredData error:&error];
-    NSThread.currentThread.threadDictionary[@"USE_PGP_DATA_SCANNER"] = nil;
     XCTAssertEqualObjects(keys1, keys2);
     
 }

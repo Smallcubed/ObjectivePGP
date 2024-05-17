@@ -127,7 +127,7 @@ NS_ASSUME_NONNULL_BEGIN
  @return Decrypted data, or `nil` if failed.
  */
 + (nullable NSData *)decrypt:(NSData *)data 
-                    verified:(int * _Nullable)verified
+                    verified:(PGPErrorCode * _Nullable)verified
          usingDecryptionKeys:(NSArray<PGPKey *> *)decryptionKeys
             verificationKeys:(NSArray<PGPKey *> *)verificationKeys
             passphraseForKey:(nullable NSString * _Nullable(^NS_NOESCAPE)(PGPKey * _Nullable key))passphraseForKeyBlock decryptionError:(NSError * __autoreleasing _Nullable *)decryptionError 
@@ -148,7 +148,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 
 + (nullable NSData *)decrypt:(NSData *)data 
-                    verified:(int * _Nullable)verified
+                    verified:(PGPErrorCode * _Nullable)verified
           certifyWithRootKey:(BOOL)certifyWithRootKey
          usingDecryptionKeys:(NSArray<PGPKey *> *)decryptionKeys
             verificationKeys:(NSArray<PGPKey *> *)verificationKeys

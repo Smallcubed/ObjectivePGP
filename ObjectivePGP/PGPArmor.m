@@ -242,27 +242,54 @@ NS_ASSUME_NONNULL_BEGIN
     // detect if armored, check for string -----BEGIN PGP
     let scanner = [[PGPDataScanner alloc] initWithData:binRingData];
     let header = [@"-----BEGIN PGP" dataUsingEncoding:NSASCIIStringEncoding];
+    
+    let cleartextHeader  = [@"-----BEGIN PGP SIGNED MESSAGE-----" dataUsingEncoding:NSASCIIStringEncoding];
+    
+    let consumeCRLF = ^BOOL{
+        NSUInteger consumeCRLFLocation = 0;
+        let cr = [NSData dataWithBytes:"\r" length:1];
+        let lf = [NSData dataWithBytes:"\n" length:1];
+        let startLocation = scanner.location;
+        do { // consume cr and lfs
+            consumeCRLFLocation = scanner.location;
+            [scanner scanData:cr intoData:nil];
+            [scanner scanData:lf intoData:nil];
+        } while (consumeCRLFLocation != scanner.location);
+        return scanner.location>startLocation;
+    };
+    // armor headers MUST be at beginning of a line.
+    // check the character preceding scanner location for a <CR> (0x0d) or <LF> (0x0a)
+    let isAtLineBeginning  = ^BOOL{
+        if (scanner.location == 0) return YES;
+        let loc = scanner.location;
+        scanner.location--;
+        let cr = [NSData dataWithBytes:"\r" length:1];
+        let lf = [NSData dataWithBytes:"\n" length:1];
+        BOOL isLineBreakChar = [scanner scanData:cr intoData:nil] || [scanner scanData:lf intoData:nil];
+        scanner.location= loc;
+        return isLineBreakChar;
+    };
+    
+    [scanner scanUpToData:cleartextHeader intoData:nil];
+    if (isAtLineBeginning() && [scanner scanData:cleartextHeader intoData:nil]){
+        consumeCRLF();
+    }
+    
     [scanner scanUpToData:header intoData:nil];
     
     let location = scanner.location;
-    if ([scanner scanData:header intoData:nil]){
+    if (isAtLineBeginning() && [scanner scanData:header intoData:nil]){
         scanner.location = location;
         NSMutableArray <NSData *> * extractedData = [NSMutableArray new];
         NSData * binData = nil;
-        let cr = [NSData dataWithBytes:"\r" length:1];
-        let lf = [NSData dataWithBytes:"\n" length:1];
+        
         NSError * armorError = nil;
         while (!scanner.isAtEnd && [scanner scanArmoredDataIntoBinaryData:&binData error:&armorError]){
             if (binData){
                 [extractedData pgp_addObject:binData];
             }
             binData = nil; 
-            NSUInteger consumeCRLFLocation = 0;
-            do { // consume cr and lfs
-                consumeCRLFLocation = scanner.location;
-                [scanner scanData:cr intoData:nil];
-                [scanner scanData:lf intoData:nil];
-            } while (consumeCRLFLocation != scanner.location);
+            consumeCRLF();
         }
         if (armorError){
             if (error) *error = armorError;
@@ -275,12 +302,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 #define USE_DATA_SCANNER
 + (nullable NSArray<NSData *> *)convertArmoredMessage2BinaryBlocksWhenNecessary:(NSData *)binOrArmorData error:(NSError * __autoreleasing _Nullable *)error {
-#ifdef  USE_DATA_SCANNER
+    
+#ifdef USE_DATA_SCANNER
     return [self convertArmoredData2BinaryBlocksWhenNecessary:binOrArmorData error:error];
 #else
-    if ([NSThread.currentThread.threadDictionary[@"USE_PGP_DATA_SCANNER"] boolValue]){
-        return [self convertArmoredData2BinaryBlocksWhenNecessary:binOrArmorData error:error];
-    }
     let binRingData = binOrArmorData;
     // detect if armored, check for string -----BEGIN PGP
     if ([PGPArmor isArmoredData:binRingData]) {
