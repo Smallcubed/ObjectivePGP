@@ -27,6 +27,7 @@ static NSString *const PGPMissingPublicKeyIdUserInfoKey = @"MissingPublicKeyID";
 
 typedef NS_ERROR_ENUM(PGPErrorDomain, PGPErrorCode) {
     PGPErrorGeneral = -1,
+    PGPErrorNone = 0,
     PGPErrorPassphraseRequired = 5,
     PGPErrorPassphraseInvalid = 6,
     /// Invalid signature. Signature is invalid or cannot be verified (eg. missing key)

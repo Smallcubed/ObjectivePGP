@@ -9,12 +9,12 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import "PGPTypes.h"
 NS_ASSUME_NONNULL_BEGIN
 @class PGPKeyID;
 
 @interface PGPVerification : NSObject
-@property (nonatomic,assign) int verificationCode;
+@property (nonatomic,assign) PGPErrorCode verificationCode;
 @property (nonatomic,strong,nullable) PGPKeyID* keyID;
 @property (nonatomic,strong,nullable) NSError * verificationError;
 
