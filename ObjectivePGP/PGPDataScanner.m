@@ -69,18 +69,19 @@
 }
 
 -(BOOL)scanArmoredDataIntoBinaryData:(NSData* _Nullable __autoreleasing* _Nullable)binaryDataRef
-                error:(NSError*_Nullable __autoreleasing* _Nullable)error{
+                error:(NSError*_Nullable __autoreleasing* _Nullable)errorRef{
     let crlf = [NSData dataWithBytes:"\r\n" length:2];
     let cr = [NSData dataWithBytes:"\r" length:1];
     let lf = [NSData dataWithBytes:"\n" length:1];
     let scanner = self;
     let headerDelimiter = [@"-----" dataUsingEncoding:NSASCIIStringEncoding];
     let startLocation = scanner.location;
+    if (binaryDataRef) *binaryDataRef = nil;
     
     if (![scanner scanData:headerDelimiter intoData:nil]){
         // error should have opening header delimeter
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Armoured data must begin with header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Armoured data must begin with header" }];
         }
         scanner.location = startLocation;
         return NO;
@@ -88,8 +89,8 @@
     NSData * beginData;
     if (![scanner scanUpToData:headerDelimiter intoData:&beginData]){
         // error expecting BEGIN
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
         }
         scanner.location = startLocation;
         return NO;
@@ -106,8 +107,8 @@
         !PGPEqualObjects(armorKind, @"PGP SIGNATURE") &&
         ![armorKind hasPrefix:@"PGP MESSAGE, PART"])
     {
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Invalid armor header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Invalid armor header" }];
         }
         scanner.location = startLocation;
         return NO;
@@ -115,8 +116,8 @@
     
     if (![scanner scanData:headerDelimiter intoData:nil]){
         // error should have closing header delimeter
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
         }
         scanner.location = startLocation;
         return NO;
@@ -128,8 +129,8 @@
     else if ([scanner scanData:lf intoData:nil]) lineBreak = lf;
     else {
         // not crlf, or cr or lf
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
         }
         scanner.location = startLocation;
         return NO;
@@ -144,8 +145,8 @@
     // scann comments
     while ([scanner scanUpToData:lineBreak intoData:nil]) {
         if (![scanner scanData:lineBreak intoData:nil]){
-            if (error) {
-                *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
+            if (errorRef) {
+                *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
             }
             scanner.location = startLocation;
             return NO;
@@ -153,8 +154,8 @@
     }
     // consume empty line after comments;
     if (![scanner scanData:lineBreak intoData:nil]){
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Malformed armor header" }];
         }
         scanner.location = startLocation;
         return NO;
@@ -162,9 +163,11 @@
     
     NSData * armorBody;
     if (![scanner scanUpToData:tail intoData:&armorBody] || ![scanner scanData:tail intoData:nil]){
-        if (error) {
-            *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Tail doesn't match armor header" }];
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"Tail doesn't match armor header" }];
         }
+        scanner.location = startLocation;
+        return NO;
     }
     let trim = ^NSData*(NSData *data){ // trim excess linefeeds after the checksum
         var loc = data.length;
@@ -189,6 +192,13 @@
             armorBody = [armorBody subdataWithRange:NSMakeRange(0, armorBody.length-delimChecksumLength)];
         }
     }
+    if (armorBody.length == 0){
+        if (errorRef) {
+            *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"No armor body data" }];
+        }
+        scanner.location = startLocation;
+        return NO;
+    }
     
     let binaryData = [[NSData alloc] initWithBase64EncodedData:armorBody options:NSDataBase64DecodingIgnoreUnknownCharacters];
     
@@ -198,8 +208,8 @@
         calculatedCRC24 = calculatedCRC24 >> 8;
         let calculatedCRC24Data = [NSData dataWithBytes:&calculatedCRC24 length:3];
         if (!PGPEqualObjects(calculatedCRC24Data, checksum)) {
-            if (error) {
-                *error = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"PGP Armor Checksum mismatch" }];
+            if (errorRef) {
+                *errorRef = [NSError errorWithDomain:PGPErrorDomain code:PGPErrorInvalidMessage userInfo:@{ NSLocalizedDescriptionKey: @"PGP Armor Checksum mismatch" }];
             }
             scanner.location = startLocation;
             return NO;
