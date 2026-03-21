@@ -325,10 +325,31 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark - Verify
 
 - (BOOL)verifyData:(NSData *)inputData publicKey:(PGPKey *)publicKey error:(NSError * __autoreleasing _Nullable *)error {
-    return [self verifyData:inputData publicKey:publicKey signingKeyPacket:(PGPPublicKeyPacket *)[publicKey.publicKey signingKeyPacketWithKeyID:self.issuerKeyID] userID:nil error:error];
+    let packet = (PGPPublicKeyPacket *)[publicKey.publicKey signingKeyPacketWithKeyID:self.issuerKeyID];
+    if (packet == nil){
+        if (error) {
+            *error = [NSError errorWithDomain:PGPErrorDomain
+                                         code:PGPErrorPublicKeyMissingSigningPacketForSignatureIssuer
+                                     userInfo:@{ NSLocalizedDescriptionKey: @"Public Key For Signed Data Missing Signing Packet" }];
+        }
+        return NO;
+    }
+    
+    
+    return [self verifyData:inputData publicKey:publicKey signingKeyPacket:packet userID:nil error:error];
 }
 
 - (BOOL)verifyData:(NSData *)inputData publicKey:(PGPKey *)publicKey userID:(nullable NSString *)userID error:(NSError * __autoreleasing _Nullable *)error {
+    
+    let packet = (PGPPublicKeyPacket *)[publicKey.publicKey signingKeyPacketWithKeyID:self.issuerKeyID];
+    if (packet == nil){
+        if (error) {
+            *error = [NSError errorWithDomain:PGPErrorDomain
+                                         code:PGPErrorPublicKeyMissingSigningPacketForSignatureIssuer
+                                     userInfo:@{ NSLocalizedDescriptionKey:@"Public Key For Signed Data Missing Signing Packet" }];
+        }
+        return NO;
+    }
     return [self verifyData:inputData publicKey:publicKey signingKeyPacket:(PGPPublicKeyPacket *)[publicKey.publicKey signingKeyPacketWithKeyID:self.issuerKeyID] userID:userID error:error];
 }
 
