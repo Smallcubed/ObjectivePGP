@@ -43,7 +43,8 @@ typedef NS_ERROR_ENUM(PGPErrorDomain, PGPErrorCode) {
     PGPErrorMissingRootPublicKey = 13,
     PGPErrorInvalidRootPublicKey = 14,
     PGPErrorSignatureVerificationFailure = 15,
-    PGPErrorSignatureVerificationMissingKey = 16
+    PGPErrorSignatureVerificationMissingKey = 16,
+    PGPErrorPublicKeyMissingSigningPacketForSignatureIssuer = 17,
 
 };
 
