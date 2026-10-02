@@ -60,8 +60,6 @@ static int decide_k_bits(int p_bits) {
     let encm = [[PGPBigNum alloc] initWithBIGNUM:c2];
 
     BN_CTX_free(tmp);
-    BN_clear_free(c2);
-    BN_clear_free(c1);
     BN_clear_free(yk);
     BN_clear_free(k);
     BN_clear_free(g);
@@ -93,7 +91,6 @@ static int decide_k_bits(int p_bits) {
     BN_CTX_free(tmp);
     BN_clear_free(c1x);
     BN_clear_free(bndiv);
-    BN_clear_free(m);
     BN_clear_free(p);
     BN_clear_free(x);
     BN_clear_free(c1);

@@ -16,10 +16,14 @@ NS_ASSUME_NONNULL_BEGIN
 @implementation PGPBigNum
 
 - (instancetype)initWithBIGNUM:(BIGNUM *)bignumRef {
+    return [self initWithBIGNUMTakingOwnership:BN_dup(bignumRef)];
+}
+
+- (instancetype)initWithBIGNUMTakingOwnership:(BIGNUM *)bignumRef {
     NSParameterAssert(bignumRef);
     
     if ((self = [super init])) {
-        _bignumRef = BN_dup(bignumRef);
+        _bignumRef = bignumRef;
     }
     return self;
 }

@@ -228,12 +228,12 @@ NS_ASSUME_NONNULL_BEGIN
     const BIGNUM *rsa_q = nil;
     RSA_get0_factors(rsa, &rsa_p, &rsa_q);
 
-    let bigN = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(rsa_n)];
-    let bigE = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(rsa_e)];
-    let bigD = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(rsa_d)];
-    let bigP = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(rsa_p)];
-    let bigQ = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(rsa_q)];
-    let bigU = [[PGPBigNum alloc] initWithBIGNUM:BN_mod_inverse(NULL, rsa_p, rsa_q, ctx)];
+    let bigN = [[PGPBigNum alloc] initWithBIGNUM:rsa_n];
+    let bigE = [[PGPBigNum alloc] initWithBIGNUM:rsa_e];
+    let bigD = [[PGPBigNum alloc] initWithBIGNUM:rsa_d];
+    let bigP = [[PGPBigNum alloc] initWithBIGNUM:rsa_p];
+    let bigQ = [[PGPBigNum alloc] initWithBIGNUM:rsa_q];
+    let bigU = [[PGPBigNum alloc] initWithBIGNUMTakingOwnership:BN_mod_inverse(NULL, rsa_p, rsa_q, ctx)];
 
     let mpiN = [[PGPMPI alloc] initWithBigNum:bigN identifier:PGPMPIdentifierN];
     let mpiE = [[PGPMPI alloc] initWithBigNum:bigE identifier:PGPMPIdentifierE];

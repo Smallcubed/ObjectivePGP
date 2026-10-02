@@ -165,8 +165,8 @@ NS_ASSUME_NONNULL_BEGIN
     const BIGNUM *r;
     const BIGNUM *s;
     DSA_SIG_get0(sig, &r, &s);
-    let MPI_R = [[PGPMPI alloc] initWithBigNum:[[PGPBigNum alloc] initWithBIGNUM:BN_dup(r)] identifier:PGPMPIdentifierR];
-    let MPI_S = [[PGPMPI alloc] initWithBigNum:[[PGPBigNum alloc] initWithBIGNUM:BN_dup(s)] identifier:PGPMPIdentifierS];
+    let MPI_R = [[PGPMPI alloc] initWithBigNum:[[PGPBigNum alloc] initWithBIGNUM:r] identifier:PGPMPIdentifierR];
+    let MPI_S = [[PGPMPI alloc] initWithBigNum:[[PGPBigNum alloc] initWithBIGNUM:s] identifier:PGPMPIdentifierS];
 
     return @[MPI_R, MPI_S];
 }
@@ -188,12 +188,12 @@ NS_ASSUME_NONNULL_BEGIN
     const BIGNUM *pub_key;
     const BIGNUM *priv_key;
     DSA_get0_key(dsa, &pub_key, &priv_key);
-    let bigP = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(DSA_get0_p(dsa))];
-    let bigQ = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(DSA_get0_q(dsa))];
-    let bigG = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(DSA_get0_g(dsa))];
-    // let bigR = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(DSA_get0_r(dsa))];
-    let bigX = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(priv_key)];
-    let bigY = [[PGPBigNum alloc] initWithBIGNUM:BN_dup(pub_key)];
+    let bigP = [[PGPBigNum alloc] initWithBIGNUM:DSA_get0_p(dsa)];
+    let bigQ = [[PGPBigNum alloc] initWithBIGNUM:DSA_get0_q(dsa)];
+    let bigG = [[PGPBigNum alloc] initWithBIGNUM:DSA_get0_g(dsa)];
+    // let bigR = [[PGPBigNum alloc] initWithBIGNUM:DSA_get0_r(dsa)];
+    let bigX = [[PGPBigNum alloc] initWithBIGNUM:priv_key];
+    let bigY = [[PGPBigNum alloc] initWithBIGNUM:pub_key];
 
     let mpiP = [[PGPMPI alloc] initWithBigNum:bigP identifier:PGPMPIdentifierP];
     let mpiQ = [[PGPMPI alloc] initWithBigNum:bigQ identifier:PGPMPIdentifierQ];

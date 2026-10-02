@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 PGP_EMPTY_INIT_UNAVAILABLE;
 
 - (instancetype)initWithBIGNUM:(BIGNUM *)bignumRef;
+- (instancetype)initWithBIGNUMTakingOwnership:(BIGNUM *)bignumRef;
 
 @end
 

@@ -45,7 +45,7 @@ PGPMPIdentifier const PGPMPIdentifierV = @"V"; // EC public point
 
 - (instancetype)initWithData:(NSData *)dataToMPI identifier:(NSString *)identifier {
     if ((self = [super init])) {
-        _bigNum = [[PGPBigNum alloc] initWithBIGNUM:BN_bin2bn(dataToMPI.bytes, dataToMPI.length & INT_MAX, NULL)];
+        _bigNum = [[PGPBigNum alloc] initWithBIGNUMTakingOwnership:BN_bin2bn(dataToMPI.bytes, dataToMPI.length & INT_MAX, NULL)];
         _packetLength = dataToMPI.length + 2;
         _identifier = [identifier copy];
     }
